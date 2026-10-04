@@ -7,6 +7,7 @@ import com.bilichat.app.data.AccountStore
 import com.bilichat.app.data.ImagePreparer
 import com.bilichat.app.data.SettingsRepository
 import com.bilichat.app.notify.MessageNotifier
+import com.bilichat.app.notify.MessageScheduler
 import com.bilichat.app.notify.MessageWatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -21,9 +22,8 @@ class AppContainer(context: Context) {
     val notifier = MessageNotifier(context)
     val accounts = AccountManager(context, AccountStore(context), deviceId(context), notifier)
     val watcher = MessageWatcher(accounts, settings, notifier)
+    val scheduler = MessageScheduler(context, settings, accounts, watcher)
     val images = ImagePreparer(context)
-
-    fun shouldMonitor(): Boolean = accounts.state.value.accounts.isNotEmpty() && settings.current.autoNotify
 
     private fun deviceId(context: Context): String {
         val prefs = context.getSharedPreferences("device", Context.MODE_PRIVATE)

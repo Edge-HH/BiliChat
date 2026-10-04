@@ -24,6 +24,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.outlined.BatterySaver
+import androidx.compose.material.icons.outlined.Bedtime
+import androidx.compose.material.icons.outlined.Eco
 import androidx.compose.material.icons.outlined.FilterAlt
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.NotificationsActive
@@ -181,9 +183,28 @@ fun SettingsScreen(
                 SwitchItem(
                     icon = Icons.Outlined.NotificationsActive,
                     title = "自动通知",
-                    summary = "在后台常驻，按刷新间隔检查新私信并发送通知",
+                    summary = "在后台按刷新间隔检查新私信并发送通知，无需常驻后台",
                     checked = settings.autoNotify,
                     onCheckedChange = ::onAutoNotifyChange,
+                )
+            }
+            item {
+                SwitchItem(
+                    icon = Icons.Outlined.Bedtime,
+                    title = "息屏时放慢",
+                    summary = "息屏后一直没有新消息时，检查间隔逐步放慢到最多 5 分钟；收到消息、亮屏或打开必聊后恢复",
+                    checked = settings.slowWhenIdle,
+                    enabled = !settings.powerSaving,
+                    onCheckedChange = viewModel::setSlowWhenIdle,
+                )
+            }
+            item {
+                SwitchItem(
+                    icon = Icons.Outlined.Eco,
+                    title = "省电模式",
+                    summary = "后台检查交给系统统一安排，约 15 分钟或更久一次；最省电，但通知会明显延迟",
+                    checked = settings.powerSaving,
+                    onCheckedChange = viewModel::setPowerSaving,
                 )
             }
             item {
@@ -210,7 +231,7 @@ fun SettingsScreen(
                     summary = if (batteryUnrestricted) {
                         "已允许在后台不受限制地运行"
                     } else {
-                        "建议关闭电池优化，避免系统中断后台接收"
+                        "建议关闭电池优化，否则息屏后检查可能被系统推迟"
                     },
                     onClick = { context.openBatteryOptimization() },
                 )

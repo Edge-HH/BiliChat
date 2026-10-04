@@ -9,32 +9,36 @@ import kotlinx.coroutines.CancellationException
 
 /**
  * 一次新消息检查：依次刷新每个已登录账号的会话列表，找出未通知过的新私信并发送通知。
+ * 返回这次是否发出了新消息通知。
  */
 class MessageWatcher(
     private val accounts: AccountManager,
     private val settings: SettingsRepository,
     private val notifier: MessageNotifier,
 ) {
-    suspend fun check() {
+    suspend fun check(): Boolean {
         val all = accounts.state.value.accounts
+        var notified = false
         all.forEach { account ->
             try {
-                checkAccount(account, accounts.session(account.mid), showAccount = all.size > 1)
+                if (checkAccount(account, accounts.session(account.mid), showAccount = all.size > 1)) notified = true
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
                 Log.w(TAG, "check failed for ${account.mid}", e)
             }
         }
+        return notified
     }
 
-    private suspend fun checkAccount(account: Account, session: AccountSession, showAccount: Boolean) {
+    private suspend fun checkAccount(account: Account, session: AccountSession, showAccount: Boolean): Boolean {
         val chat = session.chat
         val state = session.notifyState
         val conversations = chat.refreshSessions(maxAgeMillis = 2_000)
         notifier.cancelRead(account.mid, conversations)
         val filterAuto = settings.current.filterAutoMessages
         val baseline = state.baselineSeconds
+        var notifiedAny = false
 
         for (conversation in conversations) {
             val last = conversation.lastMessage ?: continue
@@ -68,8 +72,12 @@ class MessageWatcher(
                     !(filterAuto && message.isAutomated)
             }
             state.setNotifiedSeqno(conversation.key, maxOf(last.seqno, page.messages.maxOfOrNull { it.seqno } ?: 0L))
-            if (fresh.isNotEmpty()) notifier.notifyMessages(account, chat, showAccount, conversation, fresh)
+            if (fresh.isNotEmpty()) {
+                notifier.notifyMessages(account, chat, showAccount, conversation, fresh)
+                notifiedAny = true
+            }
         }
+        return notifiedAny
     }
 
     private companion object {

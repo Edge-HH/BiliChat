@@ -8,6 +8,10 @@ build/
 *.iml
 local.properties
 
+# Release signing secrets
+release.jks
+release.jks.b64
+
 # Kotlin / Compose
 .kotlin/
 captures/

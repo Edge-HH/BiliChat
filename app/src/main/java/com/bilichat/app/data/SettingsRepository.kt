@@ -8,10 +8,14 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 data class AppSettings(
-    /** 后台常驻并按刷新间隔检查新私信、发送通知。 */
+    /** 在后台按刷新间隔检查新私信、发送通知。 */
     val autoNotify: Boolean = false,
     /** 不为自动回复、官方推送等自动消息发送通知。 */
     val filterAutoMessages: Boolean = true,
+    /** 息屏且一直没有新消息时逐步放慢后台检查。 */
+    val slowWhenIdle: Boolean = true,
+    /** 后台检查交给系统统一安排（约 15 分钟以上一次），不再按刷新间隔准时检查。 */
+    val powerSaving: Boolean = false,
     val refreshIntervalSeconds: Int = 10,
     /** 从壁纸提取主题色（Android 12+）。 */
     val dynamicColor: Boolean = true,
@@ -41,6 +45,10 @@ class SettingsRepository(context: Context) {
 
     fun setFilterAutoMessages(enabled: Boolean) = update { it.copy(filterAutoMessages = enabled) }
 
+    fun setSlowWhenIdle(enabled: Boolean) = update { it.copy(slowWhenIdle = enabled) }
+
+    fun setPowerSaving(enabled: Boolean) = update { it.copy(powerSaving = enabled) }
+
     fun setRefreshInterval(seconds: Int) = update { it.copy(refreshIntervalSeconds = seconds) }
 
     fun setDynamicColor(enabled: Boolean) = update { it.copy(dynamicColor = enabled) }
@@ -51,6 +59,8 @@ class SettingsRepository(context: Context) {
         prefs.edit {
             putBoolean(KEY_AUTO_NOTIFY, s.autoNotify)
             putBoolean(KEY_FILTER_AUTO, s.filterAutoMessages)
+            putBoolean(KEY_SLOW_WHEN_IDLE, s.slowWhenIdle)
+            putBoolean(KEY_POWER_SAVING, s.powerSaving)
             putInt(KEY_INTERVAL, s.refreshIntervalSeconds)
             putBoolean(KEY_DYNAMIC_COLOR, s.dynamicColor)
         }
@@ -61,6 +71,8 @@ class SettingsRepository(context: Context) {
         return AppSettings(
             autoNotify = prefs.getBoolean(KEY_AUTO_NOTIFY, defaults.autoNotify),
             filterAutoMessages = prefs.getBoolean(KEY_FILTER_AUTO, defaults.filterAutoMessages),
+            slowWhenIdle = prefs.getBoolean(KEY_SLOW_WHEN_IDLE, defaults.slowWhenIdle),
+            powerSaving = prefs.getBoolean(KEY_POWER_SAVING, defaults.powerSaving),
             refreshIntervalSeconds = prefs.getInt(KEY_INTERVAL, defaults.refreshIntervalSeconds),
             dynamicColor = prefs.getBoolean(KEY_DYNAMIC_COLOR, defaults.dynamicColor),
         )
@@ -69,6 +81,8 @@ class SettingsRepository(context: Context) {
     private companion object {
         const val KEY_AUTO_NOTIFY = "auto_notify"
         const val KEY_FILTER_AUTO = "filter_auto_messages"
+        const val KEY_SLOW_WHEN_IDLE = "slow_when_idle"
+        const val KEY_POWER_SAVING = "power_saving"
         const val KEY_INTERVAL = "refresh_interval_seconds"
         const val KEY_DYNAMIC_COLOR = "dynamic_color"
     }

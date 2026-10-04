@@ -31,6 +31,10 @@ class SettingsViewModel(
 
     fun setFilterAutoMessages(enabled: Boolean) = settings.setFilterAutoMessages(enabled)
 
+    fun setSlowWhenIdle(enabled: Boolean) = settings.setSlowWhenIdle(enabled)
+
+    fun setPowerSaving(enabled: Boolean) = settings.setPowerSaving(enabled)
+
     fun setRefreshInterval(seconds: Int) = settings.setRefreshInterval(seconds)
 
     fun setDynamicColor(enabled: Boolean) = settings.setDynamicColor(enabled)

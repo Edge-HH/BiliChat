@@ -2,11 +2,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission
+        android:name="android.permission.SCHEDULE_EXACT_ALARM"
+        android:maxSdkVersion="32" />
 
     <application
         android:name=".BiliChatApplication"
@@ -28,14 +29,14 @@
             </intent-filter>
         </activity>
 
+        <receiver
+            android:name=".notify.MessageCheckReceiver"
+            android:exported="false" />
+
         <service
-            android:name=".notify.MessageMonitorService"
+            android:name=".notify.MessageCheckJobService"
             android:exported="false"
-            android:foregroundServiceType="specialUse">
-            <property
-                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="Polls Bilibili private messages at a user-chosen interval to post chat notifications" />
-        </service>
+            android:permission="android.permission.BIND_JOB_SERVICE" />
 
         <receiver
             android:name=".notify.NotificationActionReceiver"

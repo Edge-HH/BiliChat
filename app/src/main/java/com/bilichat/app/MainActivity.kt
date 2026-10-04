@@ -10,7 +10,6 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.bilichat.app.domain.model.Conversation
-import com.bilichat.app.notify.MessageMonitorService
 import com.bilichat.app.ui.BiliChatApp
 import com.bilichat.app.ui.ChatTarget
 import com.bilichat.app.ui.theme.BiliChatTheme
@@ -40,8 +39,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
-        // 进程在后台被拉起时可能无法启动前台服务，回到前台时补启动。
-        if (container.shouldMonitor()) MessageMonitorService.start(this)
+        container.scheduler.onAppForeground()
     }
 
     override fun onNewIntent(intent: Intent) {

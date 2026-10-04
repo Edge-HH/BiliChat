@@ -7,10 +7,6 @@ import coil3.SingletonImageLoader
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import coil3.request.crossfade
 import com.bilichat.app.data.bili.BiliApi
-import com.bilichat.app.notify.MessageMonitorService
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 
 class BiliChatApplication : Application(), SingletonImageLoader.Factory {
@@ -21,20 +17,7 @@ class BiliChatApplication : Application(), SingletonImageLoader.Factory {
         super.onCreate()
         container = AppContainer(this)
         container.notifier.createChannels()
-        container.appScope.launch {
-            // 是否有已登录账号与“自动通知”设置共同决定后台服务是否运行。
-            combine(container.accounts.state, container.settings.settings) { accounts, settings ->
-                accounts.accounts.isNotEmpty() && settings.autoNotify
-            }
-                .distinctUntilChanged()
-                .collect { enabled ->
-                    if (enabled) {
-                        MessageMonitorService.start(this@BiliChatApplication)
-                    } else {
-                        MessageMonitorService.stop(this@BiliChatApplication)
-                    }
-                }
-        }
+        container.scheduler.bind(container.appScope)
     }
 
     override fun newImageLoader(context: PlatformContext): ImageLoader {

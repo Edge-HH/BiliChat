@@ -2,7 +2,6 @@ package com.bilichat.app.notify
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.Notification
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
@@ -68,13 +67,10 @@ class MessageNotifier(private val context: Context) {
                     .setName("账号状态")
                     .setDescription("账号登录失效等提醒")
                     .build(),
-                NotificationChannelCompat.Builder(CHANNEL_MONITOR, NotificationManagerCompat.IMPORTANCE_LOW)
-                    .setName("后台接收")
-                    .setDescription("后台检查新私信时显示的常驻通知，可在系统设置中隐藏")
-                    .setShowBadge(false)
-                    .build(),
             ),
         )
+        // 旧版常驻服务的通知渠道，已不再使用。
+        manager.deleteNotificationChannel(LEGACY_CHANNEL_MONITOR)
     }
 
     fun canPost(): Boolean {
@@ -82,18 +78,6 @@ class MessageNotifier(private val context: Context) {
             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
         return granted && manager.areNotificationsEnabled()
     }
-
-    fun monitorNotification(intervalText: String, accountCount: Int): Notification =
-        NotificationCompat.Builder(context, CHANNEL_MONITOR)
-            .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(if (accountCount > 1) "正在接收 $accountCount 个账号的私信" else "正在接收私信")
-            .setContentText("每 $intervalText 检查一次新消息")
-            .setOngoing(true)
-            .setSilent(true)
-            .setShowWhen(false)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
-            .setContentIntent(activityIntent(MainActivity.intent(context), 0))
-            .build()
 
     suspend fun notifyMessages(
         account: Account,
@@ -286,8 +270,7 @@ class MessageNotifier(private val context: Context) {
     companion object {
         const val CHANNEL_MESSAGES = "messages"
         const val CHANNEL_ACCOUNT = "account"
-        const val CHANNEL_MONITOR = "monitor"
-        const val ID_MONITOR = 1
+        private const val LEGACY_CHANNEL_MONITOR = "monitor"
         private const val ID_MESSAGE = 2
         private const val ID_ACCOUNT = 3
         private const val MAX_HISTORY = 12
